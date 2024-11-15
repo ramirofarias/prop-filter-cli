@@ -1,0 +1,72 @@
+[
+  {
+    "squareFootage": 200,
+    "lighting": "medium",
+    "price": 250000,
+    "rooms": 3,
+    "bathrooms": 2,
+    "location": [34.0522, -118.2437],
+    "description": "Charming 3-bedroom home in a quiet neighborhood with easy access to parks and schools.",
+    "ammenities": {
+      "yard": true,
+      "garage": true,
+      "pool": false
+    }
+  },
+  {
+    "squareFootage": 850,
+    "lighting": "high",
+    "price": 180000,
+    "rooms": 2,
+    "bathrooms": 1,
+    "location": [40.7128, -74.006],
+    "description": "Cozy 2-bedroom apartment in the heart of downtown with natural lighting and city views.",
+    "ammenities": {
+      "yard": false,
+      "garage": false,
+      "pool": true
+    }
+  },
+  {
+    "squareFootage": 1600,
+    "lighting": "low",
+    "price": 320000,
+    "rooms": 4,
+    "bathrooms": 3,
+    "location": [37.7749, -122.4194],
+    "description": "Spacious family home with a large yard and close to shopping centers.",
+    "ammenities": {
+      "yard": true,
+      "garage": true,
+      "pool": true
+    }
+  },
+  {
+    "squareFootage": 2000,
+    "lighting": "medium",
+    "price": 450000,
+    "rooms": 5,
+    "bathrooms": 4,
+    "location": [25.7617, -80.1918],
+    "description": "Modern home with high-end finishes, located in a sunny and popular area with great schools.",
+    "ammenities": {
+      "yard": true,
+      "garage": true,
+      "pool": true
+    }
+  },
+  {
+    "squareFootage": 900,
+    "lighting": "low",
+    "price": 150000,
+    "rooms": 2,
+    "bathrooms": 1,
+    "location": [41.8781, -87.6298],
+    "description": "Affordable 2-bedroom condo with easy access to public transit and local shops.",
+    "ammenities": {
+      "yard": false,
+      "garage": false,
+      "pool": false
+    }
+  }
+]
