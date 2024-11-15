@@ -9,11 +9,13 @@ import (
 	"os"
 
 	"github.com/ramirofarias/prop-filter-cli/filter"
-	parser "github.com/ramirofarias/prop-filter-cli/parser"
+	"github.com/ramirofarias/prop-filter-cli/models"
+	"github.com/ramirofarias/prop-filter-cli/output"
+	"github.com/ramirofarias/prop-filter-cli/parser"
 )
 
 func main() {
-	input := flag.String("input", "", "Path to JSON or CSV input file")
+	inputPath := flag.String("input", "", "Path to JSON or CSV input file")
 	sqft := flag.String("sqft", "", `Filter by square footage. Examples: ">1500", "=1500", "<1500", "<=1500", ">=1500"`)
 	bathrooms := flag.String("bathrooms", "", `Filter by amount of bathrooms. Examples: ">1", "=1", "<3", "<=3", ">=3"`)
 	distance := flag.String("distance", "", `Filter by distance in km to lat and long flags. Examples: ">100", "=100", "<100", "<=100", ">=100"`)
@@ -23,15 +25,16 @@ func main() {
 	lighting := flag.String("lighting", "", `Lighting type. Possible values: 'low' | 'medium' | 'high'`)
 	keywords := flag.String("keywords", "", `Keywords to search in description (comma-separated). Example: "spacious,big"`)
 	ammenities := flag.String("ammenities", "", `Required amenities (comma-separated). Example: "garage,yard"`)
+	outputPath := flag.String("output", "", `Output file path in .csv or .json. Examples: "file.csv", "file.json"`)
 	flag.Parse()
 
-	file, err := os.Open(*input)
+	file, err := os.Open(*inputPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
 
-	var properties []filter.Property
+	var properties []models.Property
 	bytes, _ := io.ReadAll(file)
 	json.Unmarshal(bytes, &properties)
 
@@ -72,28 +75,20 @@ func main() {
 	}
 
 	filteredProperties := filter.FilterProperties(properties, filters)
-	printResultsAsJSON(filteredProperties)
-}
+	if *outputPath != "" {
+		fileType, err := parser.ParseFiletype(*outputPath)
 
-// type Parser interface {
-// 	Parse(data []byte) ([]Property, error)
-// }
+		if err != nil {
+			log.Fatal(err)
+		}
 
-type JSONParser struct{}
-
-// func (j JSONParser) Parse(data []byte) ([]Property, error) {
-// }
-
-type CSVParser struct{}
-
-// func (c CSVParser) Parse(data []byte) ([]Property, error) {
-// }
-
-func printResultsAsJSON(properties []filter.Property) error {
-	jsonOutput, err := json.MarshalIndent(properties, "", "  ")
-	if err != nil {
-		return err
+		if fileType == "json" {
+			output.ToJSONFile(filteredProperties, *outputPath)
+			os.Exit(0)
+		}
 	}
-	fmt.Println(string(jsonOutput))
-	return nil
+
+	if err := output.ToJSONStdOut(filteredProperties); err != nil {
+		fmt.Printf("Error printing data to stdout: %v\n", err)
+	}
 }
