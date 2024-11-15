@@ -24,11 +24,13 @@ type Property struct {
 }
 
 type Filter struct {
-	SquareFootage Comparison
-	Bathrooms     Comparison
-	Distance      Comparison
+	SquareFootage []Comparison
+	Bathrooms     []Comparison
+	Distance      []Comparison
+	Price         []Comparison
 	Lat           float64
 	Long          float64
+	Lighting      string
 }
 
 type location = [2]float64
@@ -38,11 +40,11 @@ func main() {
 	sqft := flag.String("sqft", "", `Filter by square footage. Examples: ">1500", "=1500", "<1500", "<=1500", ">=1500"`)
 	bathrooms := flag.String("bathrooms", "", `Filter by amount of bathrooms. Examples: ">1", "=1", "<3", "<=3", ">=3"`)
 	distance := flag.String("distance", "", `Filter by distance in km to lat and long flags. Examples: ">100", "=100", "<100", "<=100", ">=100"`)
+	price := flag.String("price", "", `Filter by price. Examples: ">1000", "=1000", "<1000", "<=1000", ">=1000"`)
 	lat := flag.Float64("lat", -999999, `Latitude to compare distance`)
 	long := flag.Float64("long", -999999, `Longitude to compare distance`)
+	lighting := flag.String("lighting", "", `Lighting type. Possible values: 'low' | 'medium' | 'high'`)
 	flag.Parse()
-	flag.Parse()
-	fmt.Println(input)
 
 	file, err := os.Open(*input)
 	if err != nil {
@@ -53,14 +55,15 @@ func main() {
 	var properties []Property
 	bytes, _ := io.ReadAll(file)
 	json.Unmarshal(bytes, &properties)
-	fmt.Printf("properties: %#v \n", properties)
 
 	var filters Filter
 	filters.SquareFootage, _ = parseComparison(*sqft)
 	filters.Bathrooms, _ = parseComparison(*bathrooms)
 	filters.Distance, _ = parseComparison(*distance)
+	filters.Price, _ = parseComparison(*price)
 	filters.Lat = *lat
 	filters.Long = *long
+	filters.Lighting = *lighting
 
 	fmt.Printf("filtered: %+v \n", filterProperties(properties, filters))
 }
@@ -68,25 +71,45 @@ func main() {
 func filterProperties(properties []Property, filters Filter) []Property {
 	var filteredProperties []Property
 
+Filters:
 	for _, property := range properties {
-		if filters.SquareFootage != (Comparison{}) {
-			if !compare(filters.SquareFootage, property.SquareFootage) {
-				continue
+		if len(filters.SquareFootage) != 0 {
+			for _, comparison := range filters.SquareFootage {
+				if !compare(comparison, property.SquareFootage) {
+					continue Filters
+				}
 			}
 		}
-		if filters.Bathrooms != (Comparison{}) {
-			if !compare(filters.Bathrooms, property.Bathrooms) {
-				continue
+		if len(filters.Bathrooms) != 0 {
+			for _, comparison := range filters.Bathrooms {
+				if !compare(comparison, property.Bathrooms) {
+					continue Filters
+				}
 			}
 		}
-
-		if filters.Distance != (Comparison{}) {
+		if len(filters.Distance) != 0 {
 			if !(filters.Long == -999999) && !(filters.Lat == -999999) {
 				actualDistance := calculateDistance(filters.Lat, filters.Long, property.Location[0], property.Location[1])
-				if !compare(filters.Distance, actualDistance) {
-					continue
+				for _, comparison := range filters.Bathrooms {
+					if !compare(comparison, actualDistance) {
+						continue Filters
+					}
 				}
 
+			}
+		}
+
+		if len(filters.Price) != 0 {
+			for _, comparison := range filters.Price {
+				if !compare(comparison, property.Price) {
+					continue Filters
+				}
+			}
+		}
+
+		if filters.Lighting != "" {
+			if filters.Lighting != property.Lighting {
+				continue Filters
 			}
 		}
 
@@ -124,51 +147,83 @@ type Comparison struct {
 	Value    float64
 }
 
-func parseComparison(s string) (Comparison, error) {
-	operators := []string{"<=", ">=", "=", "<", ">"}
+func parseComparison(s string) ([]Comparison, error) {
+	operators := []string{"lte", "gte", "eq", "lt", "gt", "in"}
 	trimmedString := strings.TrimSpace(s)
-	var comparison Comparison
+	var comparisons []Comparison
 
 	for _, o := range operators {
 		if strings.HasPrefix(trimmedString, o) {
+			if o == "in" {
+				valueRange := strings.TrimSpace(trimmedString[len(o):])
+				withoutWhitespace := strings.ReplaceAll(valueRange, " ", "")
+				values := strings.Split(withoutWhitespace, ",")
+
+				firstNum, err := strconv.ParseFloat(values[0], 64)
+				if err != nil {
+					return []Comparison{}, fmt.Errorf("invalid number used in comparison: %s", values[0])
+				}
+
+				secondNum, err := strconv.ParseFloat(values[1], 64)
+
+				if err != nil {
+					return []Comparison{}, fmt.Errorf("invalid number used in comparison: %s", values[1])
+				}
+
+				comparisons = append(comparisons, Comparison{
+					Value:    firstNum,
+					Operator: "gte",
+				})
+
+				comparisons = append(comparisons, Comparison{
+					Value:    secondNum,
+					Operator: "lte",
+				})
+
+				break
+			}
+
 			numStr := strings.TrimSpace(trimmedString[len(o):])
 			num, err := strconv.ParseFloat(numStr, 64)
 			if err != nil {
-				return Comparison{}, fmt.Errorf("invalid number used in comparison: %s", numStr)
+				return []Comparison{}, fmt.Errorf("invalid number used in comparison: %s", numStr)
 			}
 
-			comparison.Value = num
-			comparison.Operator = o
+			fmt.Println(num, o)
+			comparisons = append(comparisons, Comparison{
+				Value:    num,
+				Operator: o,
+			})
 			break
 		}
 	}
 
-	if comparison == (Comparison{}) {
-		return Comparison{}, fmt.Errorf("invalid comparison operator: %s", trimmedString)
+	if len(comparisons) == 0 {
+		return []Comparison{}, fmt.Errorf("invalid comparison operator: %s", trimmedString)
 	}
 
-	return comparison, nil
+	return comparisons, nil
 }
 
 func compare(comparison Comparison, prop float64) bool {
 	switch comparison.Operator {
-	case "<":
+	case "lt":
 		if !(prop < comparison.Value) {
 			return false
 		}
-	case ">":
+	case "gt":
 		if !(prop > comparison.Value) {
 			return false
 		}
-	case ">=":
+	case "gte":
 		if !(prop >= comparison.Value) {
 			return false
 		}
-	case "<=":
+	case "lte":
 		if !(prop <= comparison.Value) {
 			return false
 		}
-	case "=":
+	case "eq":
 		if !(prop == comparison.Value) {
 			return false
 		}
