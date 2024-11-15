@@ -48,7 +48,7 @@ func main() {
 	long := flag.Float64("long", -999999, `Longitude to compare distance`)
 	lighting := flag.String("lighting", "", `Lighting type. Possible values: 'low' | 'medium' | 'high'`)
 	keywords := flag.String("keywords", "", `Keywords to search in description (comma-separated). Example: "spacious,big"`)
-	amenities := flag.String("amenities", "", `Required amenities (comma-separated). Example: "garage,yard"`)
+	ammenities := flag.String("ammenities", "", `Required amenities (comma-separated). Example: "garage,yard"`)
 	flag.Parse()
 
 	file, err := os.Open(*input)
@@ -62,17 +62,43 @@ func main() {
 	json.Unmarshal(bytes, &properties)
 
 	var filters Filter
-	filters.SquareFootage, _ = parseComparison(*sqft)
-	filters.Bathrooms, _ = parseComparison(*bathrooms)
-	filters.Distance, _ = parseComparison(*distance)
-	filters.Price, _ = parseComparison(*price)
+
+	if *sqft != "" {
+		filters.SquareFootage, err = parseComparison(*sqft)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	if *bathrooms != "" {
+		filters.Bathrooms, err = parseComparison(*bathrooms)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	if *distance != "" {
+		filters.Distance, err = parseComparison(*distance)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	if *price != "" {
+		filters.Price, err = parseComparison(*price)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 	filters.Lat = *lat
 	filters.Long = *long
 	filters.Lighting = *lighting
-	filters.Keywords = parseText(*keywords)
-	filters.Ammenities = parseText(*amenities)
+	if *keywords != "" {
+		filters.Keywords = parseText(*keywords)
+	}
+	if *ammenities != "" {
+		filters.Ammenities = parseText(*ammenities)
+	}
 
-	fmt.Printf("filtered: %+v \n", filterProperties(properties, filters))
+	filteredProperties := filterProperties(properties, filters)
+	printResultsAsJSON(filteredProperties)
 }
 
 func filterProperties(properties []Property, filters Filter) []Property {
@@ -180,56 +206,63 @@ func parseComparison(s string) ([]Comparison, error) {
 	trimmedString := strings.TrimSpace(s)
 	var comparisons []Comparison
 
-	for _, o := range operators {
-		if strings.HasPrefix(trimmedString, o) {
-			if o == "in" {
-				valueRange := strings.TrimSpace(trimmedString[len(o):])
-				withoutWhitespace := strings.ReplaceAll(valueRange, " ", "")
-				values := strings.Split(withoutWhitespace, ",")
-
-				firstNum, err := strconv.ParseFloat(values[0], 64)
+	for _, op := range operators {
+		if strings.HasPrefix(trimmedString, op) {
+			if op == "in" {
+				rangeComparisons, err := parseRangeComparison(trimmedString[len(op):])
 				if err != nil {
-					return []Comparison{}, fmt.Errorf("invalid number used in comparison: %s", values[0])
+					return nil, err
 				}
-
-				secondNum, err := strconv.ParseFloat(values[1], 64)
-
-				if err != nil {
-					return []Comparison{}, fmt.Errorf("invalid number used in comparison: %s", values[1])
-				}
-
-				comparisons = append(comparisons, Comparison{
-					Value:    firstNum,
-					Operator: "gte",
-				})
-
-				comparisons = append(comparisons, Comparison{
-					Value:    secondNum,
-					Operator: "lte",
-				})
-
-				break
+				comparisons = append(comparisons, rangeComparisons...)
+				return comparisons, nil
 			}
 
-			numStr := strings.TrimSpace(trimmedString[len(o):])
-			num, err := strconv.ParseFloat(numStr, 64)
+			comp, err := parseSingleComparison(op, trimmedString[len(op):])
 			if err != nil {
-				return []Comparison{}, fmt.Errorf("invalid number used in comparison: %s", numStr)
+				return nil, err
 			}
-
-			comparisons = append(comparisons, Comparison{
-				Value:    num,
-				Operator: o,
-			})
-			break
+			comparisons = append(comparisons, comp)
+			return comparisons, nil
 		}
 	}
 
-	if len(comparisons) == 0 {
-		return []Comparison{}, fmt.Errorf("invalid comparison operator: %s", trimmedString)
+	return nil, fmt.Errorf("invalid comparison operator: %s", trimmedString)
+}
+
+func parseRangeComparison(valueRange string) ([]Comparison, error) {
+	trimmedRange := strings.TrimSpace(valueRange)
+	values := strings.Split(trimmedRange, ",")
+	if len(values) != 2 {
+		return nil, fmt.Errorf("range comparison requires two values, got: %s", trimmedRange)
 	}
 
-	return comparisons, nil
+	firstNum, err := strconv.ParseFloat(strings.TrimSpace(values[0]), 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid number in range: %s", values[0])
+	}
+
+	secondNum, err := strconv.ParseFloat(strings.TrimSpace(values[1]), 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid number in range: %s", values[1])
+	}
+
+	return []Comparison{
+		{Value: firstNum, Operator: "gte"},
+		{Value: secondNum, Operator: "lte"},
+	}, nil
+}
+
+func parseSingleComparison(operator, valueStr string) (Comparison, error) {
+	numStr := strings.TrimSpace(valueStr)
+	num, err := strconv.ParseFloat(numStr, 64)
+	if err != nil {
+		return Comparison{}, fmt.Errorf("invalid number in comparison: %s", numStr)
+	}
+
+	return Comparison{
+		Value:    num,
+		Operator: operator,
+	}, nil
 }
 
 func compare(comparison Comparison, prop float64) bool {
@@ -268,4 +301,13 @@ func parseText(s string) []string {
 		words[i] = strings.TrimSpace(word)
 	}
 	return words
+}
+
+func printResultsAsJSON(properties []Property) error {
+	jsonOutput, err := json.MarshalIndent(properties, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(jsonOutput))
+	return nil
 }
