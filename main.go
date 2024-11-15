@@ -8,6 +8,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -19,7 +20,7 @@ type Property struct {
 	Rooms         float64         `json:"rooms"`
 	Bathrooms     float64         `json:"bathrooms"`
 	Location      [2]float64      `json:"location"`
-	Description   location        `json:"description"`
+	Description   string          `json:"description"`
 	Ammenities    map[string]bool `json:"ammenities"`
 }
 
@@ -31,6 +32,8 @@ type Filter struct {
 	Lat           float64
 	Long          float64
 	Lighting      string
+	Keywords      []string
+	Ammenities    []string
 }
 
 type location = [2]float64
@@ -44,6 +47,8 @@ func main() {
 	lat := flag.Float64("lat", -999999, `Latitude to compare distance`)
 	long := flag.Float64("long", -999999, `Longitude to compare distance`)
 	lighting := flag.String("lighting", "", `Lighting type. Possible values: 'low' | 'medium' | 'high'`)
+	keywords := flag.String("keywords", "", `Keywords to search in description (comma-separated). Example: "spacious,big"`)
+	amenities := flag.String("amenities", "", `Required amenities (comma-separated). Example: "garage,yard"`)
 	flag.Parse()
 
 	file, err := os.Open(*input)
@@ -64,6 +69,8 @@ func main() {
 	filters.Lat = *lat
 	filters.Long = *long
 	filters.Lighting = *lighting
+	filters.Keywords = parseText(*keywords)
+	filters.Ammenities = parseText(*amenities)
 
 	fmt.Printf("filtered: %+v \n", filterProperties(properties, filters))
 }
@@ -111,6 +118,27 @@ Filters:
 			if filters.Lighting != property.Lighting {
 				continue Filters
 			}
+		}
+
+		if len(filters.Keywords) != 0 {
+			lowercaseDescription := strings.ToLower(property.Description)
+			for _, keyword := range filters.Keywords {
+				pattern := fmt.Sprintf(`\b%s\b`, regexp.QuoteMeta(keyword))
+				regex := regexp.MustCompile(pattern)
+
+				if !regex.MatchString(lowercaseDescription) {
+					continue Filters
+				}
+			}
+
+		}
+		if len(filters.Ammenities) != 0 {
+			for _, keyword := range filters.Ammenities {
+				if !property.Ammenities[keyword] {
+					continue Filters
+				}
+			}
+
 		}
 
 		filteredProperties = append(filteredProperties, property)
@@ -189,7 +217,6 @@ func parseComparison(s string) ([]Comparison, error) {
 				return []Comparison{}, fmt.Errorf("invalid number used in comparison: %s", numStr)
 			}
 
-			fmt.Println(num, o)
 			comparisons = append(comparisons, Comparison{
 				Value:    num,
 				Operator: o,
@@ -232,4 +259,13 @@ func compare(comparison Comparison, prop float64) bool {
 	}
 
 	return true
+}
+
+func parseText(s string) []string {
+	s = strings.ToLower(s)
+	words := strings.Split(s, ",")
+	for i, word := range words {
+		words[i] = strings.TrimSpace(word)
+	}
+	return words
 }
