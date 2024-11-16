@@ -50,7 +50,7 @@ Filters:
 		if len(filters.Distance) > 0 {
 			if !(filters.Long == -999999) && !(filters.Lat == -999999) {
 				actualDistance := calculateDistance(filters.Lat, filters.Long, property.Location[0], property.Location[1])
-				for _, comparison := range filters.Bathrooms {
+				for _, comparison := range filters.Distance {
 					if !matchesComparison(comparison, actualDistance) {
 						continue Filters
 					}
