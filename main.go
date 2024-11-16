@@ -31,6 +31,10 @@ func main() {
 				Usage: `Filter by amount of bathrooms. Examples: "gt 1", "eq 1", "lt 3", "lte 3", "gte 3", "in 1,3"`,
 			},
 			&cli.StringFlag{
+				Name:  "rooms",
+				Usage: `Filter by amount of rooms. Examples: "gt 1", "eq 1", "lt 3", "lte 3", "gte 3", "in 1,3"`,
+			},
+			&cli.StringFlag{
 				Name:  "distance",
 				Usage: `Filter by distance in km to lat and long flags. Examples: "gt 100", "eq 100", "lt 100", "lte 100", "gte 100", "in 150,200"`,
 			},
@@ -97,6 +101,12 @@ func main() {
 				filters.Bathrooms, err = parser.ParseComparison(bathrooms)
 				if err != nil {
 					return fmt.Errorf("error parsing bathrooms filter: %v", err)
+				}
+			}
+			if rooms := c.String("rooms"); rooms != "" {
+				filters.Rooms, err = parser.ParseComparison(rooms)
+				if err != nil {
+					return fmt.Errorf("error parsing rooms filter: %v", err)
 				}
 			}
 			filters.Lat = c.Float64("lat")

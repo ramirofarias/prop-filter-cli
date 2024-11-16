@@ -19,6 +19,7 @@ type Comparison struct {
 type Filter struct {
 	SquareFootage []Comparison
 	Bathrooms     []Comparison
+	Rooms         []Comparison
 	Distance      []Comparison
 	Price         []Comparison
 	Lat           float64
@@ -43,6 +44,13 @@ Filters:
 		if len(filters.Bathrooms) > 0 {
 			for _, comparison := range filters.Bathrooms {
 				if !matchesComparison(comparison, property.Bathrooms) {
+					continue Filters
+				}
+			}
+		}
+		if len(filters.Rooms) > 0 {
+			for _, comparison := range filters.Rooms {
+				if !matchesComparison(comparison, property.Rooms) {
 					continue Filters
 				}
 			}
