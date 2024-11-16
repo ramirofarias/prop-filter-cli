@@ -1,14 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 
 	"github.com/ramirofarias/prop-filter-cli/filter"
+	"github.com/ramirofarias/prop-filter-cli/input"
 	"github.com/ramirofarias/prop-filter-cli/models"
 	"github.com/ramirofarias/prop-filter-cli/output"
 	"github.com/ramirofarias/prop-filter-cli/parser"
@@ -27,18 +26,35 @@ func main() {
 	ammenities := flag.String("ammenities", "", `Required amenities (comma-separated). Example: "garage,yard"`)
 	outputPath := flag.String("output", "", `Output file path in .csv or .json. Examples: "file.csv", "file.json"`)
 	flag.Parse()
-
-	file, err := os.Open(*inputPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
 	var properties []models.Property
-	bytes, _ := io.ReadAll(file)
-	json.Unmarshal(bytes, &properties)
+
+	if *inputPath != "" {
+		fileType, err := parser.ParseFiletype(*inputPath)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if fileType == "json" {
+			properties, err = input.FromJSONFile(*inputPath)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		if fileType == "csv" {
+			properties, err = input.FromCSVFile(*inputPath)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+	}
 
 	var filters filter.Filter
+	var err error
 
 	if *sqft != "" {
 		filters.SquareFootage, err = parser.ParseComparison(*sqft)
@@ -84,6 +100,11 @@ func main() {
 
 		if fileType == "json" {
 			output.ToJSONFile(filteredProperties, *outputPath)
+			os.Exit(0)
+		}
+
+		if fileType == "csv" {
+			output.ToCSVFile(filteredProperties, *outputPath)
 			os.Exit(0)
 		}
 	}
