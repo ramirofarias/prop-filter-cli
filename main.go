@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 
@@ -10,123 +9,151 @@ import (
 	"github.com/ramirofarias/prop-filter-cli/models"
 	"github.com/ramirofarias/prop-filter-cli/output"
 	"github.com/ramirofarias/prop-filter-cli/parser"
+	"github.com/urfave/cli/v2"
 )
 
 func main() {
-	inputPath := flag.String("input", "", "Path to JSON or CSV input file")
-	sqft := flag.String("sqft", "", `Filter by square footage. Examples: ">1500", "=1500", "<1500", "<=1500", ">=1500"`)
-	bathrooms := flag.String("bathrooms", "", `Filter by amount of bathrooms. Examples: ">1", "=1", "<3", "<=3", ">=3"`)
-	distance := flag.String("distance", "", `Filter by distance in km to lat and long flags. Examples: ">100", "=100", "<100", "<=100", ">=100"`)
-	price := flag.String("price", "", `Filter by price. Examples: ">1000", "=1000", "<1000", "<=1000", ">=1000"`)
-	lat := flag.Float64("lat", -999999, `Latitude to compare distance`)
-	long := flag.Float64("long", -999999, `Longitude to compare distance`)
-	lighting := flag.String("lighting", "", `Lighting type. Possible values: 'low' | 'medium' | 'high'`)
-	keywords := flag.String("keywords", "", `Keywords to search in description (comma-separated). Example: "spacious,big"`)
-	ammenities := flag.String("ammenities", "", `Required amenities (comma-separated). Example: "garage,yard"`)
-	outputPath := flag.String("output", "", `Output file path in .csv or .json. Examples: "file.csv", "file.json"`)
-	flag.Parse()
-	var properties []models.Property
+	app := &cli.App{
+		Name:  "prop-filter-cli",
+		Usage: "Filter property data from JSON or CSV files",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "input",
+				Usage:    "Path to JSON or CSV input file",
+				Required: true,
+			},
+			&cli.StringFlag{
+				Name:  "sqft",
+				Usage: `Filter by square footage. Examples: "gt 1500", "eq 1500", "lt 1500", "lte 1500", "in 1500,2000"`,
+			},
+			&cli.StringFlag{
+				Name:  "bathrooms",
+				Usage: `Filter by amount of bathrooms. Examples: "gt 1", "eq 1", "lt 3", "lte 3", "gte 3", "in 1,3"`,
+			},
+			&cli.StringFlag{
+				Name:  "distance",
+				Usage: `Filter by distance in km to lat and long flags. Examples: "gt 100", "eq 100", "lt 100", "lte 100", "gte 100", "in 150,200"`,
+			},
+			&cli.StringFlag{
+				Name:  "price",
+				Usage: `Filter by price. Examples: "gt 1000", "eq 1000", "lt 1000", "lte 1000", "gte 1000"`,
+			},
+			&cli.Float64Flag{
+				Name:  "lat",
+				Value: -999999,
+				Usage: `Latitude to compare distance`,
+			},
+			&cli.Float64Flag{
+				Name:  "long",
+				Value: -999999,
+				Usage: `Longitude to compare distance`,
+			},
+			&cli.StringFlag{
+				Name:  "lighting",
+				Usage: `Lighting type. Possible values: 'low' | 'medium' | 'high'`,
+			},
+			&cli.StringFlag{
+				Name:  "keywords",
+				Usage: `Keywords to search in description (comma-separated). Example: "spacious,big"`,
+			},
+			&cli.StringFlag{
+				Name:  "ammenities",
+				Usage: `Required amenities (comma-separated). Example: "garage,yard"`,
+			},
+			&cli.StringFlag{
+				Name:  "output",
+				Usage: `Output file path in .csv or .json. Examples: "file.csv", "file.json"`,
+			},
+		},
+		EnableBashCompletion: true,
+		Action: func(c *cli.Context) error {
+			inputPath := c.String("input")
+			var properties []models.Property
 
-	if *inputPath != "" {
-		fileType, err := parser.ParseFiletype(*inputPath)
+			fileType, err := parser.ParseFiletype(inputPath)
+			if err != nil {
+				return fmt.Errorf("error parsing input file type: %v", err)
+			}
 
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error parsing input file type: %v\n", err)
-			os.Exit(1)
-		}
-
-		if fileType == "json" {
-			properties, err = input.FromJSONFile(*inputPath)
+			switch fileType {
+			case "json":
+				properties, err = input.FromJSONFile(inputPath)
+			case "csv":
+				properties, err = input.FromCSVFile(inputPath)
+			}
 
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "error parsing JSON input file: %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("error parsing input file: %v", err)
 			}
-		}
 
-		if fileType == "csv" {
-			properties, err = input.FromCSVFile(*inputPath)
-
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "error parsing CSV input file: %v\n", err)
-				os.Exit(1)
+			var filters filter.Filter
+			if sqft := c.String("sqft"); sqft != "" {
+				filters.SquareFootage, err = parser.ParseComparison(sqft)
+				if err != nil {
+					return fmt.Errorf("error parsing sqft filter: %v", err)
+				}
 			}
-		}
-
-	}
-
-	var filters filter.Filter
-	var err error
-
-	if *sqft != "" {
-		filters.SquareFootage, err = parser.ParseComparison(*sqft)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error parsing sqft filter: %v\n", err)
-			os.Exit(1)
-		}
-	}
-	if *bathrooms != "" {
-		filters.Bathrooms, err = parser.ParseComparison(*bathrooms)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error parsing bathrooms filter: %v\n", err)
-			os.Exit(1)
-		}
-	}
-	if *distance != "" {
-		filters.Distance, err = parser.ParseComparison(*distance)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error parsing distance filter: %v\n", err)
-			os.Exit(1)
-		}
-	}
-	if *price != "" {
-		filters.Price, err = parser.ParseComparison(*price)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error parsing price filter: %v\n", err)
-			os.Exit(1)
-		}
-	}
-	filters.Lat = *lat
-	filters.Long = *long
-	filters.Lighting = *lighting
-	if *keywords != "" {
-		filters.Keywords = parser.ParseText(*keywords)
-	}
-	if *ammenities != "" {
-		filters.Ammenities = parser.ParseText(*ammenities)
-	}
-
-	filteredProperties := filter.FilterProperties(properties, filters)
-	if *outputPath != "" {
-		fileType, err := parser.ParseFiletype(*outputPath)
-
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error parsing output file type: %v\n", err)
-			os.Exit(1)
-		}
-
-		if fileType == "json" {
-			err := output.ToJSONFile(filteredProperties, *outputPath)
-
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "error writing JSON output file: %v\n", err)
-				os.Exit(1)
+			if bathrooms := c.String("bathrooms"); bathrooms != "" {
+				filters.Bathrooms, err = parser.ParseComparison(bathrooms)
+				if err != nil {
+					return fmt.Errorf("error parsing bathrooms filter: %v", err)
+				}
 			}
-			os.Exit(0)
-		}
-
-		if fileType == "csv" {
-			err := output.ToCSVFile(filteredProperties, *outputPath)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "error writing CSV output file: %v\n", err)
-				os.Exit(1)
+			if distance := c.String("distance"); distance != "" {
+				filters.Distance, err = parser.ParseComparison(distance)
+				if err != nil {
+					return fmt.Errorf("error parsing distance filter: %v", err)
+				}
 			}
-			os.Exit(0)
-		}
+			if price := c.String("price"); price != "" {
+				filters.Price, err = parser.ParseComparison(price)
+				if err != nil {
+					return fmt.Errorf("error parsing price filter: %v", err)
+				}
+			}
+
+			filters.Lat = c.Float64("lat")
+			filters.Long = c.Float64("long")
+			filters.Lighting = c.String("lighting")
+			if keywords := c.String("keywords"); keywords != "" {
+				filters.Keywords = parser.ParseText(keywords)
+			}
+			if ammenities := c.String("ammenities"); ammenities != "" {
+				filters.Ammenities = parser.ParseText(ammenities)
+			}
+
+			filteredProperties := filter.FilterProperties(properties, filters)
+
+			outputPath := c.String("output")
+			if outputPath != "" {
+				fileType, err := parser.ParseFiletype(outputPath)
+				if err != nil {
+					return fmt.Errorf("error parsing output file type: %v", err)
+				}
+
+				switch fileType {
+				case "json":
+					if err := output.ToJSONFile(filteredProperties, outputPath); err != nil {
+						return fmt.Errorf("error writing JSON output file: %v", err)
+					}
+				case "csv":
+					if err := output.ToCSVFile(filteredProperties, outputPath); err != nil {
+						return fmt.Errorf("error writing CSV output file: %v", err)
+					}
+				}
+
+			} else {
+				if err := output.ToJSONStdOut(filteredProperties); err != nil {
+					return fmt.Errorf("error printing data to stdout: %v", err)
+				}
+			}
+
+			return nil
+		},
 	}
 
-	if err := output.ToJSONStdOut(filteredProperties); err != nil {
-		fmt.Fprintf(os.Stderr, "error printing data to stdout: %v\n", err)
+	if err := app.Run(os.Args); err != nil {
+		fmt.Fprintf(os.Stderr, "error running app: %v\n", err)
 		os.Exit(1)
 	}
 }
