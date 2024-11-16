@@ -7,6 +7,7 @@ CLI tool for filtering and transforming property data from JSON or CSV files
 - Filter properties by multiple criteria:
   - Square footage
   - Number of bathrooms
+  - Number of rooms
   - Price
   - Distance from coordinates
   - Lighting
@@ -25,21 +26,15 @@ CLI tool for filtering and transforming property data from JSON or CSV files
    - macOS: `prop-filter-cli_darwin_amd64`
    - Linux: `prop-filter-cli_linux_amd64`
 
-For Linux/macOS users, make the binary executable:
-
-```bash
-chmod +x prop-filter-cli_*
-```
-
 ## Usage
 
 ```bash
-prop-filter-cli --input <input-file> [flags]
+./prop-filter-cli_<your_system_binary> --input <input-file> [flags]
 ```
 
 ### Required Flags
 
-- `--input`: Path to JSON or CSV input file (required)
+- `--input`: Path to JSON or CSV input file
 
 ### Optional Flags
 
@@ -70,23 +65,23 @@ prop-filter-cli --input <input-file> [flags]
 
 ```bash
 # Filter properties larger than 1500 sq ft
-prop-filter-cli --input properties.json --sqft "gt 1500"
+./prop-filter-cli_<your_system_binary> --input properties.json --sqft "gt 1500"
 
 # Filter properties with 2 or more bathrooms
-prop-filter-cli --input properties.csv --bathrooms "gte 2"
+./prop-filter-cli_<your_system_binary> --input properties.csv --bathrooms "gte 2"
 
 # Filter properties under $500,000
-prop-filter-cli --input properties.json --price "lt 500000"
+./prop-filter-cli_<your_system_binary> --input properties.json --price "lt 500000"
 ```
 
 ### Combined Filters
 
 ```bash
-prop-filter-cli --input properties.json \
+./prop-filter-cli_<your_system_binary> --input properties.json \
   --lighting "high" \
   --ammenities "pool"
 
-prop-filter-cli --input properties.json \
+./prop-filter-cli_<your_system_binary> --input properties.json \
   --sqft "gt 2000" \
   --price "lte 600000" \
   --keywords "spacious,modern"
@@ -96,7 +91,7 @@ prop-filter-cli --input properties.json \
 
 ```bash
 # Find properties within 10km of coordinates
-prop-filter-cli --input properties.json \
+./prop-filter-cli_<your_system_binary> --input properties.json \
   --lat 34.0522 \
   --long -118.2437 \
   --distance "lte 10"
@@ -106,12 +101,12 @@ prop-filter-cli --input properties.json \
 
 ```bash
 # Export filtered results to CSV
-prop-filter-cli --input properties.json \
+./prop-filter-cli_<your_system_binary> --input properties.json \
   --price "lt 400000" \
   --output "affordable_properties.csv"
 
 # Export filtered results to JSON
-prop-filter-cli --input properties.csv \
+./prop-filter-cli_<your_system_binary> --input properties.csv \
   --lighting "high" \
   --ammenities "garage,pool" \
   --output "luxury_properties.json"
