@@ -1,6 +1,6 @@
-squareFootage,lighting,price,rooms,bathrooms,location_lat,location_lon,description,yard,garage,pool
-1200,medium,250000,3,2,34.0522,-118.2437,"Charming 3-bedroom home in a quiet neighborhood with easy access to parks and schools.",true,true,false
-850,high,180000,2,1,40.7128,-74.0060,"Cozy 2-bedroom apartment in the heart of downtown with natural lighting and city views.",false,false,true
-1600,low,320000,4,3,37.7749,-122.4194,"Spacious family home with a large yard and close to shopping centers.",true,true,true
-2000,medium,450000,5,4,25.7617,-80.1918,"Modern home with high-end finishes, located in a sunny and popular area with great schools.",true,true,true
-900,low,150000,2,1,41.8781,-87.6298,"Affordable 2-bedroom condo with easy access to public transit and local shops.",false,false,false
+squareFootage,lighting,price,rooms,bathrooms,latitude,longitude,description,ammenities
+200,medium,250000.00,3,2,34.052200,-118.243700,Charming 3-bedroom home in a quiet neighborhood with easy access to parks and schools.,"{""garage"":true,""pool"":false,""yard"":true}"
+850,high,180000.00,2,1,40.712800,-74.006000,Cozy 2-bedroom apartment in the heart of downtown with natural lighting and city views.,"{""garage"":false,""pool"":true,""yard"":false}"
+1600,low,320000.00,4,3,37.774900,-122.419400,Spacious family home with a large yard and close to shopping centers.,"{""garage"":true,""pool"":true,""yard"":true}"
+2000,medium,450000.00,5,4,25.761700,-80.191800,"Modern home with high-end finishes, located in a sunny and popular area with great schools.","{""garage"":true,""pool"":true,""yard"":true}"
+900,low,150000.00,2,1,41.878100,-87.629800,Affordable 2-bedroom condo with easy access to public transit and local shops.,"{""garage"":false,""pool"":false,""yard"":false}"

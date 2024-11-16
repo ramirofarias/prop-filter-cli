@@ -29,7 +29,7 @@ func ToCSVFile(data []models.Property, path string) error {
 
 	for _, property := range data {
 		var row []string
-		row = append(row, fmt.Sprintf("%f", property.SquareFootage))
+		row = append(row, fmt.Sprintf("%d", int(property.SquareFootage)))
 		row = append(row, property.Lighting)
 		row = append(row, fmt.Sprintf("%.2f", property.Price))
 		row = append(row, fmt.Sprintf("%d", int(property.Rooms)))
