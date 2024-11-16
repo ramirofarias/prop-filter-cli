@@ -99,7 +99,12 @@ func main() {
 					return fmt.Errorf("error parsing bathrooms filter: %v", err)
 				}
 			}
+			filters.Lat = c.Float64("lat")
+			filters.Long = c.Float64("long")
 			if distance := c.String("distance"); distance != "" {
+				if filters.Lat == -999999 || filters.Long == -999999 {
+					return fmt.Errorf("lat and long flags are required when using distance filter")
+				}
 				filters.Distance, err = parser.ParseComparison(distance)
 				if err != nil {
 					return fmt.Errorf("error parsing distance filter: %v", err)
@@ -112,8 +117,6 @@ func main() {
 				}
 			}
 
-			filters.Lat = c.Float64("lat")
-			filters.Long = c.Float64("long")
 			filters.Lighting = c.String("lighting")
 			if keywords := c.String("keywords"); keywords != "" {
 				filters.Keywords = parser.ParseText(keywords)
