@@ -1,7 +1,9 @@
 package input
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 
@@ -18,7 +20,13 @@ func FromJSONFile(filename string) ([]models.Property, error) {
 	}
 	defer file.Close()
 
-	bytes, _ := io.ReadAll(file)
-	json.Unmarshal(bytes, &properties)
+	data, _ := io.ReadAll(file)
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&properties)
+
+	if err != nil {
+		return []models.Property{}, fmt.Errorf("error unmarshaling json: %e", err)
+	}
 	return properties, nil
 }
