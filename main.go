@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/ramirofarias/prop-filter-cli/filter"
@@ -32,14 +31,16 @@ func main() {
 		fileType, err := parser.ParseFiletype(*inputPath)
 
 		if err != nil {
-			log.Fatal(err)
+			fmt.Fprintf(os.Stderr, "error parsing input file type: %v\n", err)
+			os.Exit(1)
 		}
 
 		if fileType == "json" {
 			properties, err = input.FromJSONFile(*inputPath)
 
 			if err != nil {
-				log.Fatal(err)
+				fmt.Fprintf(os.Stderr, "error parsing json file: %v\n", err)
+				os.Exit(1)
 			}
 		}
 
@@ -47,7 +48,8 @@ func main() {
 			properties, err = input.FromCSVFile(*inputPath)
 
 			if err != nil {
-				log.Fatal(err)
+				fmt.Fprintf(os.Stderr, "error input csv file: %v\n", err)
+				os.Exit(1)
 			}
 		}
 
@@ -59,25 +61,29 @@ func main() {
 	if *sqft != "" {
 		filters.SquareFootage, err = parser.ParseComparison(*sqft)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Fprintf(os.Stderr, "error parsing sqft filter: %v\n", err)
+			os.Exit(1)
 		}
 	}
 	if *bathrooms != "" {
 		filters.Bathrooms, err = parser.ParseComparison(*bathrooms)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Fprintf(os.Stderr, "error parsing bathrooms filter: %v\n", err)
+			os.Exit(1)
 		}
 	}
 	if *distance != "" {
 		filters.Distance, err = parser.ParseComparison(*distance)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Fprintf(os.Stderr, "error parsing distance filter: %v\n", err)
+			os.Exit(1)
 		}
 	}
 	if *price != "" {
 		filters.Price, err = parser.ParseComparison(*price)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Fprintf(os.Stderr, "error parsing price filter: %v\n", err)
+			os.Exit(1)
 		}
 	}
 	filters.Lat = *lat
@@ -95,7 +101,8 @@ func main() {
 		fileType, err := parser.ParseFiletype(*outputPath)
 
 		if err != nil {
-			log.Fatal(err)
+			fmt.Fprintf(os.Stderr, "error parsing output file type: %v\n", err)
+			os.Exit(1)
 		}
 
 		if fileType == "json" {
@@ -110,6 +117,7 @@ func main() {
 	}
 
 	if err := output.ToJSONStdOut(filteredProperties); err != nil {
-		fmt.Printf("Error printing data to stdout: %v\n", err)
+		fmt.Fprintf(os.Stderr, "error printing data to stdout: %v\n", err)
+		os.Exit(1)
 	}
 }
