@@ -47,6 +47,8 @@ prop-filter-cli --input <input-file> [flags]
   - Examples: "gt 1500", "eq 1500", "lt 1500", "lte 1500", "in 1500,2000"
 - `--bathrooms`: Filter by number of bathrooms
   - Examples: "gt 1", "eq 1", "lt 3", "lte 3", "gte 3", "in 1,3"
+- `--rooms`: Filter by number of rooms
+  - Examples: "gt 1", "eq 1", "lt 3", "lte 3", "gte 3", "in 1,3"
 - `--distance`: Filter by distance in km (requires --lat and --long)
   - Examples: "gt 100", "eq 100", "lt 100", "lte 100", "gte 100", "in 150,200"
 - `--price`: Filter by price
