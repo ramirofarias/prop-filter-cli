@@ -39,7 +39,7 @@ func main() {
 			properties, err = input.FromJSONFile(*inputPath)
 
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "error parsing json file: %v\n", err)
+				fmt.Fprintf(os.Stderr, "error parsing JSON input file: %v\n", err)
 				os.Exit(1)
 			}
 		}
@@ -48,7 +48,7 @@ func main() {
 			properties, err = input.FromCSVFile(*inputPath)
 
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "error input csv file: %v\n", err)
+				fmt.Fprintf(os.Stderr, "error parsing CSV input file: %v\n", err)
 				os.Exit(1)
 			}
 		}
@@ -106,12 +106,21 @@ func main() {
 		}
 
 		if fileType == "json" {
-			output.ToJSONFile(filteredProperties, *outputPath)
+			err := output.ToJSONFile(filteredProperties, *outputPath)
+
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "error writing JSON output file: %v\n", err)
+				os.Exit(1)
+			}
 			os.Exit(0)
 		}
 
 		if fileType == "csv" {
-			output.ToCSVFile(filteredProperties, *outputPath)
+			err := output.ToCSVFile(filteredProperties, *outputPath)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "error writing CSV output file: %v\n", err)
+				os.Exit(1)
+			}
 			os.Exit(0)
 		}
 	}
