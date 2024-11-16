@@ -68,5 +68,145 @@
       "garage": false,
       "pool": false
     }
+  },
+  {
+    "squareFootage": 1200,
+    "lighting": "high",
+    "price": 280000,
+    "rooms": 3,
+    "bathrooms": 2,
+    "location": [32.7767, -96.797],
+    "description": "Updated ranch-style home with modern amenities and an open floor plan.",
+    "ammenities": {
+      "yard": true,
+      "garage": true,
+      "pool": false
+    }
+  },
+  {
+    "squareFootage": 750,
+    "lighting": "medium",
+    "price": 195000,
+    "rooms": 1,
+    "bathrooms": 1,
+    "location": [47.6062, -122.3321],
+    "description": "Stylish studio apartment in trendy neighborhood with excellent walkability score.",
+    "ammenities": {
+      "yard": false,
+      "garage": true,
+      "pool": false
+    }
+  },
+  {
+    "squareFootage": 3000,
+    "lighting": "high",
+    "price": 650000,
+    "rooms": 6,
+    "bathrooms": 4,
+    "location": [39.7392, -104.9903],
+    "description": "Luxury mountain view estate with high ceilings and premium fixtures throughout.",
+    "ammenities": {
+      "yard": true,
+      "garage": true,
+      "pool": true
+    }
+  },
+  {
+    "squareFootage": 1100,
+    "lighting": "medium",
+    "price": 225000,
+    "rooms": 3,
+    "bathrooms": 2,
+    "location": [35.2271, -80.8431],
+    "description": "Well-maintained townhouse in family-friendly community with shared amenities.",
+    "ammenities": {
+      "yard": true,
+      "garage": false,
+      "pool": true
+    }
+  },
+  {
+    "squareFootage": 1800,
+    "lighting": "low",
+    "price": 380000,
+    "rooms": 4,
+    "bathrooms": 2,
+    "location": [33.749, -84.388],
+    "description": "Historic craftsman with original details and modern updates in prime location.",
+    "ammenities": {
+      "yard": true,
+      "garage": true,
+      "pool": false
+    }
+  },
+  {
+    "squareFootage": 950,
+    "lighting": "high",
+    "price": 210000,
+    "rooms": 2,
+    "bathrooms": 2,
+    "location": [42.3601, -71.0589],
+    "description": "Recently renovated condo with harbor views and updated kitchen.",
+    "ammenities": {
+      "yard": false,
+      "garage": true,
+      "pool": true
+    }
+  },
+  {
+    "squareFootage": 2500,
+    "lighting": "medium",
+    "price": 520000,
+    "rooms": 5,
+    "bathrooms": 3,
+    "location": [36.1627, -86.7816],
+    "description": "Southern charm meets modern living in this expansive family home.",
+    "ammenities": {
+      "yard": true,
+      "garage": true,
+      "pool": true
+    }
+  },
+  {
+    "squareFootage": 680,
+    "lighting": "low",
+    "price": 160000,
+    "rooms": 1,
+    "bathrooms": 1,
+    "location": [45.5155, -122.6789],
+    "description": "Efficient starter home perfect for minimalist living with great investment potential.",
+    "ammenities": {
+      "yard": false,
+      "garage": false,
+      "pool": false
+    }
+  },
+  {
+    "squareFootage": 1400,
+    "lighting": "high",
+    "price": 295000,
+    "rooms": 3,
+    "bathrooms": 2,
+    "location": [30.2672, -97.7431],
+    "description": "Contemporary home in growing tech hub with smart home features.",
+    "ammenities": {
+      "yard": true,
+      "garage": true,
+      "pool": false
+    }
+  },
+  {
+    "squareFootage": 2200,
+    "lighting": "medium",
+    "price": 475000,
+    "rooms": 4,
+    "bathrooms": 3,
+    "location": [38.9072, -77.0369],
+    "description": "Elegant colonial with finished basement and private garden oasis.",
+    "ammenities": {
+      "yard": true,
+      "garage": true,
+      "pool": true
+    }
   }
 ]
